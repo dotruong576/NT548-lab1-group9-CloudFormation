@@ -1,12 +1,25 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description: 'Creates a VPC with Managed NAT, similar to the VPC Wizard at https://console.aws.amazon.com/vpc/home#wizardFullpagePublicAndPrivate: (extended from VPC_with_PublicIPs_And_DNS.template sample)'
+Description: 'Creates a VPC with Managed NAT, EC2 Instances Private - Public'
 
 Parameters:
   VPCName:
     Description: The name of the VPC being created.
     Type: String
-    Default: VPC Public and Private with NAT
+    Default: Lab1_Group9
+  InstanceTypeParameter:
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+    Description: "Select an instance type."
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access into the server
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: Lab1_Group9_Key
 
 Mappings:
   SubnetConfig:
@@ -53,7 +66,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: Hey_Public
+          Value: Lab1_Group9_Public
   PrivateSubnet0:
     Type: AWS::EC2::Subnet
     Properties:
@@ -71,7 +84,7 @@ Resources:
         - Key: Network
           Value: Private
         - Key: Name
-          Value: Hey_Private
+          Value: Lab1_Group9_Private
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Properties:
@@ -81,7 +94,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: Hey_IGW
+          Value: Lab1_Group9_IGW
 
   GatewayToInternet:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -99,7 +112,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: Hey-public-route-table
+          Value: Lab1_Group9-public-route-table
 
   PublicRoute:
     Type: AWS::EC2::Route
@@ -125,7 +138,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: Hey-public-nacl
+          Value: Lab1_Group9-public-nacl
 
   InboundHTTPPublicNetworkAclEntry:
     Type: AWS::EC2::NetworkAclEntry
@@ -169,6 +182,9 @@ Resources:
     Properties:
       AllocationId: !GetAtt ElasticIP0.AllocationId
       SubnetId: !Ref PublicSubnet0
+      Tag:
+        - Key: Name
+          Value: Lab1_Group_nat_gateway
 
   PrivateRouteTable0:
     Type: AWS::EC2::RouteTable
@@ -176,7 +192,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: Hey-private-route-table
+          Value: Lab1_Group9-private-route-table
 
   PrivateRouteToInternet0:
     Type: AWS::EC2::Route
@@ -190,6 +206,67 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnet0
       RouteTableId: !Ref PrivateRouteTable0
+  PublicEC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceTypeParameter
+      ImageId: 'ami-0dfcb1ef8550277af'
+      NetworkInterfaces:
+        - GroupSet:
+            - !Ref PublicEC2InstanceSecurityGroup
+          AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          DeleteOnTermination: 'true'
+          SubnetId: !Ref PublicSubnet0
+      Tags:
+        - Key: Name
+          Value: Lab1_Group9_Public_EC2_Instance
+      KeyName: !Ref KeyName
+  PublicEC2InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: EC2SecurityGroupPublic
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+      GroupName: Lab1_Group9_Public_SG
+      Tags:
+        - Key: Name
+          Value: Lab1_Group9_Public_SG
+
+  PrivateEC2Instance:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: !Ref InstanceTypeParameter
+      ImageId: 'ami-0dfcb1ef8550277af'
+      NetworkInterfaces:
+        - GroupSet:
+            - !Ref PrivateEC2InstanceSecurityGroup
+          AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          DeleteOnTermination: 'true'
+          SubnetId: !Ref PrivateSubnet0
+      Tags:
+        - Key: Name
+          Value: Lab1_Group9_Private_EC2_Instance
+      KeyName: !Ref KeyName
+  PrivateEC2InstanceSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: EC2SecurityGroupPrivate
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref PublicEC2InstanceSecurityGroup
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+      GroupName: Lab1_Group9_Private_SG
+      Tags:
+        - Key: Name
+          Value: Lab1_Group9_Private_SG
 
 Outputs:
   VPCId:
