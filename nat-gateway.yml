@@ -21,12 +21,12 @@ Resources:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt ElasticIP0.AllocationId
-      SubnetId: !Ref PublicSubnet0
+      SubnetId: !Ref PublicSubnetId
 
   PrivateRouteTable0:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref VPC
+      VpcId: !Ref VPCId
       Tags:
         - Key: Name
           Value: Lab1_Group9_private_route_table
@@ -41,5 +41,5 @@ Resources:
   PrivateSubnetRouteTableAssociation0:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref PrivateSubnet0
+      SubnetId: !Ref PrivateSubnetId
       RouteTableId: !Ref PrivateRouteTable0
