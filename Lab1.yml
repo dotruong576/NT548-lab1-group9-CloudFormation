@@ -182,9 +182,6 @@ Resources:
     Properties:
       AllocationId: !GetAtt ElasticIP0.AllocationId
       SubnetId: !Ref PublicSubnet0
-      Tag:
-        - Key: Name
-          Value: Lab1_Group_nat_gateway
 
   PrivateRouteTable0:
     Type: AWS::EC2::RouteTable
@@ -253,6 +250,7 @@ Resources:
         - Key: Name
           Value: Lab1_Group9_Private_EC2_Instance
       KeyName: !Ref KeyName
+  
   PrivateEC2InstanceSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup'
     Properties:

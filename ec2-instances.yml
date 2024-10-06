@@ -1,0 +1,93 @@
+Parameters:
+  InstanceTypeParameter:
+    Type: String
+    Default: t3.micro
+    AllowedValues:
+      - t3.micro
+      - t3.small
+      - t3.medium
+      - t3.large
+    Description: "Select an instance type."
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access into the server
+    Type: AWS::EC2::KeyPair::KeyName
+
+  VPCId:
+    Type: String
+    Description: "ID of the VPC where resources will be deployed"
+  
+  PublicSubnetId:
+    Type: String
+    Description: "ID of the public subnet"
+  
+  PrivateSubnetId:
+    Type: String
+    Description: "ID of the private subnet"
+
+
+# ec2-instances.yml
+Resources:
+#------------------------- PUBLIC EC2 INSTANCE ----------------------------#
+  PublicEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceTypeParameter
+      ImageId: 'ami-0dfcb1ef8550277af'
+      NetworkInterfaces:
+        - GroupSet: [!Ref PublicEC2InstanceSecurityGroup]
+          AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          DeleteOnTermination: 'true'
+          SubnetId: !Ref PublicSubnet0
+      Tags:
+        - Key: Name
+          Value: Lab1_Group9_Public_EC2_Instance
+      KeyName: !Ref KeyName
+#--------------- SECURITY GROUP FOR PUBLIC EC2 INSTANCE ---------------------#
+  PublicEC2InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: EC2SecurityGroupPublic
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+      GroupName: Lab1_Group9_Public_SG
+      Tags:
+        - Key: Name
+          Value: Lab1_Group9_Public_SG
+ #------------------------ PRIVATE EC2 INSTANCE ----------------------------#
+  PrivateEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceTypeParameter
+      ImageId: 'ami-0dfcb1ef8550277af'
+      NetworkInterfaces:
+        - GroupSet: [!Ref PrivateEC2InstanceSecurityGroup]
+          AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          DeleteOnTermination: 'true'
+          SubnetId: !Ref PrivateSubnet0
+      Tags:
+        - Key: Name
+          Value: Lab1_Group9_Private_EC2_Instance
+      KeyName: !Ref KeyName
+  #--------------- SECURITY GROUP FOR PRIVATE EC2 INSTANCE ---------------------#
+  PrivateEC2InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: EC2SecurityGroupPrivate
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref PublicEC2InstanceSecurityGroup
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+      GroupName: Lab1_Group9_Private_SG
+      Tags:
+        - Key: Name
+          Value: Lab1_Group9_Private_SG
+
+

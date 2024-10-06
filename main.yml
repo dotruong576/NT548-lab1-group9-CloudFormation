@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Main stack to deploy all sub-modules (VPC, NAT Gateway, EC2 Instances)
+
+Resources:
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/cloudformation-modules/vpc-networking.yml
+      Parameters:
+        VPCName: Lab1_Group9
+        KeyName: Lab1_Group9_Key
+        VPCCIDR: 10.0.0.0/16
+        PrivateSubnetCIDR: 10.0.1.0/16
+        PrublicSubnetCIDR: 10.0.1.0/16
+
+  NATGatewayStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/cloudformation-modules/nat-gateway.yml
+      Parameters:
+        VPCId: !GetAtt VPCStack.Outputs.VPCId
+        PublicSubnetId: !GetAtt VPCStack.Outputs.PublicSubnet0
+        PrivateSubnetId: !GetAtt VPCStack.Outputs.PrivateSubnet0
+
+  EC2InstanceStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/cloudformation-modules/ec2-instances.yml
+      Parameters:
+        VPCId: !GetAtt VPCStack.Outputs.VPCId
+        PublicSubnetId: !GetAtt VPCStack.Outputs.PublicSubnet0
+        PrivateSubnetId: !GetAtt VPCStack.Outputs.PrivateSubnet0
+        KeyName: Lab1_Group9_Key
+
+Outputs:
+  VPCId:
+    Description: VPC ID of the VPC created
+    Value: !GetAtt VPCStack.Outputs.VPCId
+
+  PublicSubnetId:
+    Description: Subnet ID of the public subnet
+    Value: !GetAtt VPCStack.Outputs.PublicSubnet0
+
+  PrivateSubnetId:
+    Description: Subnet ID of the private subnet
+    Value: !GetAtt VPCStack.Outputs.PrivateSubnet0
