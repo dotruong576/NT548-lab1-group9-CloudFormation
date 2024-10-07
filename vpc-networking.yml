@@ -1,0 +1,82 @@
+Parameters:
+  VPCName:
+    Description: The name of the VPC being created.
+    Type: String
+    Default: VPC Name
+  VPCCIDR:
+    Description: CIDR of VPC
+    Type: String
+    Default: 10.0.0.0/16
+  PublicSubnetCIDR:
+    Description: CIDR of Public Subnet
+    Type: String
+    Default: 10.0.0.0/24
+  PrivateSubnetCIDR:
+    Description: CIDR of Private Subnet
+    Type: String
+    Default: 10.0.1.0/24
+
+# vpc-networking.yml
+Resources:
+#------------------------- VPC -------------------------#
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+      CidrBlock: !Ref VPCCIDR
+      Tags:
+        - Key: Application
+          Value: !Ref AWS::StackName
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value: !Ref VPCName
+#------------------------- Subnets -------------------------#
+  PublicSubnet0:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs us-east-1]
+      CidrBlock: !Ref PublicSubnetCIDR
+      MapPublicIpOnLaunch: "true"
+      Tags:
+        - Key: Application
+          Value: !Ref AWS::StackName
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value: Lab1_Group9_Public
+
+  PrivateSubnet0:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs us-east-1]
+      CidrBlock: !Ref PrivateSubnetCIDR
+      Tags:
+        - Key: Application
+          Value: !Ref AWS::StackName
+        - Key: Network
+          Value: Private
+        - Key: Name
+          Value: Lab1_Group9_Private
+
+Outputs:
+  VPCId:
+    Description: VPCId of VPC
+    Value: !Ref VPC
+    Export:
+      Name: !Sub ${AWS::Region}-${AWS::StackName}-VPC
+
+  PublicSubnet0:
+    Description: SubnetId of public subnet 0
+    Value: !Ref PublicSubnet0
+    Export:
+      Name: !Sub ${AWS::Region}-${AWS::StackName}-PublicSubnet0
+
+  PrivateSubnet0:
+    Description: SubnetId of private subnet 0
+    Value: !Ref PrivateSubnet0
+    Export:
+      Name: !Sub ${AWS::Region}-${AWS::StackName}-PrivateSubnet0
