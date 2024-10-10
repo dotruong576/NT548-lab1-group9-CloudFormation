@@ -2,14 +2,9 @@ Parameters:
   VPCId:
     Type: String
     Description: "ID of the VPC where resources will be deployed"
-  
   PublicSubnetId:
     Type: String
     Description: "ID of the public subnet"
-  
-  PrivateSubnetId:
-    Type: String
-    Description: "ID of the private subnet"
 # nat-gateway.yml
 Resources:
   ElasticIP0:
@@ -17,29 +12,15 @@ Resources:
     Properties:
       Domain: vpc
 
-  NATGateway0:
+  NATGateway:
     Type: AWS::EC2::NatGateway
     Properties:
       AllocationId: !GetAtt ElasticIP0.AllocationId
       SubnetId: !Ref PublicSubnetId
 
-  PrivateRouteTable0:
-    Type: AWS::EC2::RouteTable
-    Properties:
-      VpcId: !Ref VPCId
-      Tags:
-        - Key: Name
-          Value: Lab1_Group9_private_route_table
-
-  PrivateRouteToInternet0:
-    Type: AWS::EC2::Route
-    Properties:
-      RouteTableId: !Ref PrivateRouteTable0
-      DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGateway0
-
-  PrivateSubnetRouteTableAssociation0:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      SubnetId: !Ref PrivateSubnetId
-      RouteTableId: !Ref PrivateRouteTable0
+Outputs:
+  NATGateway:
+    Description: Id of NAT Gateway
+    Value: !Ref NATGateway
+    Export:
+      Name: !Sub ${AWS::Region}-${AWS::StackName}-NATGateway

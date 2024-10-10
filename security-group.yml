@@ -2,7 +2,12 @@ Parameters:
   VPCId:
     Type: String
     Description: "ID of the VPC where resources will be deployed"
-
+  PublicEC2InstanceSecurityGroupName:
+    Type: String
+    Description: "Name of Public EC2 Instance Security Group"
+  PrivateEC2InstanceSecurityGroupName:
+    Type: String
+    Description: "Name of Private EC2 Instance Security Group"
 Resources:
   #--------------- SECURITY GROUP FOR PUBLIC EC2 INSTANCE ---------------------#
   PublicEC2InstanceSecurityGroup:
@@ -11,14 +16,14 @@ Resources:
       GroupDescription: EC2SecurityGroupPublic
       VpcId: !Ref VPCId
       SecurityGroupIngress:
-        - CidrIp: 0.0.0.0/0
+        - CidrIp: 171.235.152.130/32
           FromPort: 22
           ToPort: 22
           IpProtocol: tcp
-      GroupName: Lab1_Group9_Public_SG
+      GroupName: !Ref PublicEC2InstanceSecurityGroupName
       Tags:
         - Key: Name
-          Value: Lab1_Group9_Public_SG
+          Value: !Ref PublicEC2InstanceSecurityGroupName
 
   #--------------- SECURITY GROUP FOR PRIVATE EC2 INSTANCE ---------------------#
   PrivateEC2InstanceSecurityGroup:
@@ -31,10 +36,10 @@ Resources:
           FromPort: 22
           ToPort: 22
           IpProtocol: tcp
-      GroupName: Lab1_Group9_Private_SG
+      GroupName: !Ref PrivateEC2InstanceSecurityGroupName
       Tags:
         - Key: Name
-          Value: Lab1_Group9_Private_SG
+          Value: !Ref PrivateEC2InstanceSecurityGroupName
 
 Outputs:
   PublicEC2InstanceSecurityGroup:

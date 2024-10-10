@@ -11,7 +11,10 @@ Resources:
         VPCCIDR: 10.0.0.0/16
         PublicSubnetCIDR: 10.0.0.0/24
         PrivateSubnetCIDR: 10.0.1.0/24
-
+        InternetGateWayName: Lab1_Group9_IGW
+        PrivateSubnetName: Lab1_Group9_Private
+        PublicSubnetName: Lab1_Group9_Public
+   
   NATGatewayStack:
     Type: AWS::CloudFormation::Stack
     Properties:
@@ -19,7 +22,21 @@ Resources:
       Parameters:
         VPCId: !GetAtt VPCStack.Outputs.VPCId
         PublicSubnetId: !GetAtt VPCStack.Outputs.PublicSubnet0
+
+  RouteTablesStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/cloudformation-modules/route-tables.yml
+      Parameters:
+        VPCId: !GetAtt VPCStack.Outputs.VPCId
+        PublicSubnetId: !GetAtt VPCStack.Outputs.PublicSubnet0
+        NetworkAclName: Lab1_Group9-public-nacl
+        InternetGatewayId: !GetAtt VPCStack.Outputs.InternetGateway
+        NATGatewayId: !GetAtt NATGatewayStack.Outputs.NATGateway
         PrivateSubnetId: !GetAtt VPCStack.Outputs.PrivateSubnet0
+        GatewayToInternetId: !GetAtt VPCStack.Outputs.GatewayToInternet
+        PrivateRouteTableName: Lab1_Group9_private_route_table
+        PublicRouteTableName: Lab1_Group9-public-route-table
 
   EC2InstanceStack:
     Type: AWS::CloudFormation::Stack
@@ -42,16 +59,8 @@ Resources:
       TemplateURL: https://s3.amazonaws.com/cloudformation-modules/security-group.yml
       Parameters:
         VPCId: !GetAtt VPCStack.Outputs.VPCId
-
-  RouteTablesStack:
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: https://s3.amazonaws.com/cloudformation-modules/route-tables.yml
-      Parameters:
-        VPCId: !GetAtt VPCStack.Outputs.VPCId
-        InternetGateWayName: Lab1_Group9_IGW
-        PublicSubnetId: !GetAtt VPCStack.Outputs.PublicSubnet0
-        NetworkAclName: Lab1_Group9-public-nacl
+        PublicEC2InstanceSecurityGroupName: Lab1_Group9_Public_SG
+        PrivateEC2InstanceSecurityGroupName: Lab1_Group9_Private_SG
 
 Outputs:
   VPCId:
@@ -66,6 +75,10 @@ Outputs:
     Description: Subnet ID of the private subnet
     Value: !GetAtt VPCStack.Outputs.PrivateSubnet0
 
+  NATGatewayId:
+    Description: ID of the NAT Gateway 
+    Value: !GetAtt NATGatewayStack.Outputs.NATGateway
+
   PublicEC2InstanceSecurityGroupId:
     Description: Security Group ID of Public EC2 Instance
     Value: !GetAtt SecurityGroupStack.Outputs.PublicEC2InstanceSecurityGroup
@@ -73,3 +86,12 @@ Outputs:
   PrivateEC2InstanceSecurityGroupId:
     Description: Security Group ID of Private EC2 Instance
     Value: !GetAtt SecurityGroupStack.Outputs.PrivateEC2InstanceSecurityGroup
+  
+  InternetGatewayId:
+    Description: ID of the Internet Gateway
+    Value: !GetAtt VPCStack.Outputs.InternetGateway
+
+  GatewayToInternetId:
+    Description: ID of the Gateway To Internet
+    Value: !GetAtt VPCStack.Outputs.GatewayToInternet
+  

@@ -15,6 +15,17 @@ Parameters:
     Description: CIDR of Private Subnet
     Type: String
     Default: 10.0.1.0/24
+  InternetGateWayName:
+    Type: String
+    Description: "Name of the Internet Gateway"
+  PrivateSubnetName: 
+    Description: The name of the Private Subnet
+    Type: String
+    Default: Private Subnet Name
+  PublicSubnetName: 
+    Description: The name of the Public Subnet
+    Type: String
+    Default: Public Subnet Name
 
 # vpc-networking.yml
 Resources:
@@ -46,7 +57,7 @@ Resources:
         - Key: Network
           Value: Public
         - Key: Name
-          Value: Lab1_Group9_Public
+          Value: !Ref PublicSubnetName
 
   PrivateSubnet0:
     Type: AWS::EC2::Subnet
@@ -60,7 +71,24 @@ Resources:
         - Key: Network
           Value: Private
         - Key: Name
-          Value: Lab1_Group9_Private
+          Value: !Ref PrivateSubnetName
+  
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        #- Key: Application
+        #  Value: !Ref AWS::StackName
+        - Key: Network
+          Value: Public
+        - Key: Name
+          Value: !Ref InternetGateWayName
+
+  GatewayToInternet:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
 
 Outputs:
   VPCId:
@@ -80,3 +108,15 @@ Outputs:
     Value: !Ref PrivateSubnet0
     Export:
       Name: !Sub ${AWS::Region}-${AWS::StackName}-PrivateSubnet0
+    
+  InternetGateway:
+    Description: Id of InternetGateway
+    Value: !Ref InternetGateway
+    Export:
+      Name: !Sub ${AWS::Region}-${AWS::StackName}-InternetGateway
+      
+  GatewayToInternet:
+    Description: Id of Gateway To Internet
+    Value: !Ref GatewayToInternet
+    Export:
+      Name: !Sub ${AWS::Region}-${AWS::StackName}-GatewayToInternet
